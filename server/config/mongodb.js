@@ -9,7 +9,7 @@ let db;
 const connect = async () => {
   try {
     const con = await client.connect();
-    console.log(con);
+    // console.log(con);
     db = client.db(dbName);
   } catch (err) {
     console.log(err.message);
