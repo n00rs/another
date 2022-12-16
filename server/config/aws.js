@@ -29,35 +29,55 @@
 //   res.send('Image successfully uploaded');
 // });
 
-
-
-
-
 // // second one
 
-// const AWS = require('aws-sdk');
-// const multer = require('multer');
+const AWS = require("aws-sdk");
+const multer = require("multer");
 // const multerS3 = require('multer-s3');
 
-// // configure the SDK with your AWS access key and secret key
-// AWS.config.update({
-//   accessKeyId: YOUR_ACCESS_KEY,
-//   secretAccessKey: YOUR_SECRET_KEY
-// });
+// configure the SDK with your AWS access key and secret key
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESSKEYID,
+  secretAccessKey: process.env.AWS_SECERTKEY,
+});
+const region = process.env.AWS_S3_REGION;
+// create an S3 client object
+const s3 = new AWS.S3();
 
-// // create an S3 client object
-// const s3 = new AWS.S3();
+// create a multer storage engine that uses S3
+const storage = multer.memoryStorage({
+  destination: function (req, file, cb) {
+    cb(null, "");
+  },
+});
 
-// // create a multer storage engine that uses S3
-// const storage = multer.memoryStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, '');
-//   }
-// });
+const upload = multer({ storage: storage });
 
-// const upload = multer({ storage: storage });
+const awsUpload = async ({ key, body }) => {
+  console.log(key, body);
+  const params = {
+    Bucket: process.env.BUCKET_NAME,
+    Key: key,
+    Body: body,
+  };
+  s3.upload(params, function (err, data) {
+    if (err) {
+      console.error(err);
+      //   res.status(500).send(err);
+      throw err;
+    } else {
+      console.log(data.Location);
+      //   console.log(`Image successfully saved to ${BUCKET_NAME}`);
+      //   console.log(`https://${params.Bucket}.s3.${region}.amazonaws.com/${params.Key}`);
+      //   res.send("Image successfully uploaded");
+      return data.Location;
+    }
+  });
+};
 
-// // define a route that handles the file upload
+module.exports = { upload, awsUpload };
+
+// define a route that handles the file upload
 // app.post('/upload', upload.single('image'), function(req, res, next) {
 //   // the image is now stored in the req.file.buffer property
 //   // create a params object that contains the bucket name, file name, and file contents
