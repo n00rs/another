@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { submitContact } from "../../utils/api";
 import FormInput from "../UI/FormInput";
+
 const initialState = {
   first_name: "",
   last_name: "",
@@ -10,8 +11,9 @@ const initialState = {
   city: "",
   zipcode: "",
 };
+
 export const AddContact = () => {
-  const [formInput, setFormInput] = useState({});
+  const [formInput, setFormInput] = useState(initialState);
   const [image, setImage] = useState();
 
   const getInputVal = (e) => {
@@ -36,6 +38,7 @@ export const AddContact = () => {
       const data = await submitContact(formData);
       console.log(data);
       if (data.success) alert("contact added");
+      setFormInput(initialState);
     } catch (err) {
       console.error(err.message);
     }

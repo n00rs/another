@@ -1,5 +1,5 @@
-// const AWS = require('aws-sdk');
-// const multer = require('multer');
+const AWS = require("aws-sdk");
+const multer = require("multer");
 // const multerS3 = require('multer-s3');
 
 // // configure the SDK with your AWS access key and secret key
@@ -31,20 +31,19 @@
 
 // // second one
 
-const AWS = require("aws-sdk");
-const multer = require("multer");
 // const multerS3 = require('multer-s3');
 
 // configure the SDK with your AWS access key and secret key
+
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESSKEYID,
   secretAccessKey: process.env.AWS_SECERTKEY,
 });
+
 const region = process.env.AWS_S3_REGION;
-// create an S3 client object
+
 const s3 = new AWS.S3();
 
-// create a multer storage engine that uses S3
 const storage = multer.memoryStorage({
   destination: function (req, file, cb) {
     cb(null, "");
@@ -54,25 +53,24 @@ const storage = multer.memoryStorage({
 const upload = multer({ storage: storage });
 
 const awsUpload = async ({ key, body }) => {
-  console.log(key, body);
   const params = {
     Bucket: process.env.BUCKET_NAME,
     Key: key,
     Body: body,
   };
-  s3.upload(params, function (err, data) {
-    if (err) {
-      console.error(err);
-      //   res.status(500).send(err);
-      throw err;
-    } else {
-      console.log(data.Location);
-      //   console.log(`Image successfully saved to ${BUCKET_NAME}`);
-      //   console.log(`https://${params.Bucket}.s3.${region}.amazonaws.com/${params.Key}`);
-      //   res.send("Image successfully uploaded");
-      return data.Location;
-    }
-  });
+  //   new Promise((resolve, reject) => {
+  return s3.upload(params).promise();
+  // s3.upload(params, (err, data) => {
+  //   if (err) reject(err);
+  //   else {
+  //     console.log(data.Location);
+  //     resolve(data.Location);
+  //   }
+  //   //   console.log(`Image successfully saved to ${BUCKET_NAME}`);
+  //   //   console.log(`https://${params.Bucket}.s3.${region}.amazonaws.com/${params.Key}`);
+  //   //   res.send("Image successfully uploaded");
+  // });
+  //   });
 };
 
 module.exports = { upload, awsUpload };

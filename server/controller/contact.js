@@ -1,3 +1,4 @@
+const { ObjectID } = require("bson");
 const { awsUpload } = require("../config/aws");
 const { db } = require("../config/mongodb");
 
@@ -6,7 +7,7 @@ class ContactController {
   //ROUTE /api/contact
 
   static saveContact = async (req, res, next) => {
-    console.log(req.body, req.file);
+    // console.log(req.body, req.file);
     try {
       const keys = Object.keys(req.body);
       const requiredField = [
@@ -22,14 +23,6 @@ class ContactController {
 
       if (!validate) throw { statuCode: 403, message: "please provide required details" };
 
-      if (req.file) {
-        const fileName = Math.random().toString().replace(".", "") + req.file.originalname;
-
-        const img = await awsUpload({ key: fileName, body: req.file.buffer });
-
-        req.body.image = img;
-      }
-
       const contact = {
         phone: [parseInt(req.body.phone)],
         address: {
@@ -40,9 +33,18 @@ class ContactController {
         first_name: req.body?.first_name,
         last_name: req.body?.last_name,
         email: req.body?.email,
-        image: req.body?.image,
       };
+      if (req.file) {
+        const fileName = Math.random().toString().replace(".", "") + req.file.originalname;
 
+        // const p  = await awsUpload({ key: fileName, body: req.file.buffer });
+        contact.image = await (await awsUpload({ key: fileName, body: req.file.buffer })).Location;
+
+        // req.body.image = await img;
+        // console.log(img);
+      }
+
+      console.log(contact);
       //TODO CREATE INDEX FOR TEXT SEARCH
 
       db.collection("contacts").createIndex({ phone: 1 }, { unique: true });
@@ -59,7 +61,24 @@ class ContactController {
   static fetchContacts = async (req, res, next) => {
     try {
       // console.log(req.body);
-      const contacts = await db.collection("contacts").find().toArray();
+      const pageNo = req.query.pageNo || 1;
+      const pageSize = req.query.pageSize || 1;
+      const search = req.query.search || "";
+
+      const [contacts] = await db
+        .collection("contacts")
+        .aggregate([
+          {
+            $facet: {
+              metadata: [
+                { $count: "total_docs" },
+                { $addFields: { totalPages: { $ceil: { $divide: ["$total_docs", pageSize] } } } },
+              ],
+              data: [{ $skip: (pageNo - 1) * pageSize }, { $limit: pageSize }],
+            },
+          },
+        ])
+        .toArray();
 
       res.status(200).json(contacts);
     } catch (err) {
@@ -68,12 +87,21 @@ class ContactController {
   };
 
   //METHOD DELETE
-  //ROUTE /api/contact
+  //ROUTE /api/contact/:contactId
 
   static deleteContact = async (req, res, next) => {
     try {
-      console.log(req.body);
-      res.status(201).json("from delete contact");
+      const { contactId } = req.params;
+      console.log(contactId);
+      if (!contactId) throw { statuCode: 422, message: "Missing required parameter: contactId" };
+
+      const { deletedCount } = await db
+        .collection("contacts")
+        .deleteOne({ _id: ObjectID(contactId) });
+      console.log(deletedCount);
+      if (deletedCount === 1)
+        res.status(200).json({ success: true, message: "contact has been removed successfully" });
+      else throw new Error("opps something went wrong");
     } catch (err) {
       next(err);
     }
@@ -85,7 +113,7 @@ class ContactController {
   static updateContact = async (req, res, next) => {
     try {
       console.log(req.body);
-      res.status(201).json("from update contact");
+      res.status(201).json(req.body);
     } catch (err) {
       next(err);
     }

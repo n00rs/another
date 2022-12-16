@@ -8,9 +8,9 @@ router.get("/", fetchContacts);
 
 router.post("/",upload.single('image'), saveContact);
 
-router.delete("/", deleteContact);
+router.delete("/:contactId", deleteContact);
 
-router.put("/", updateContact);
+router.put("/:contactId", updateContact);
 
 module.exports = router;
  
