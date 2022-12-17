@@ -29,4 +29,4 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({ message: err.message });
 });
 
-app.listen(PORT ? PORT : 5000, () => console.log(`server running at PORT :${PORT}`));
+app.listen(PORT , () => console.log(`server running at PORT :${PORT}`));
