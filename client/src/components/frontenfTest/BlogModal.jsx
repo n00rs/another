@@ -3,14 +3,17 @@ import { Modal } from "../UI/Modal";
 import styles from "./BlogModal.module.css";
 
 export const BlogModal = ({ onClose, blog }) => {
-  const { thumbnail ,author } = blog;
+  const { thumbnail, author } = blog;
   return (
     <Modal onClose={onClose}>
-      <header className="text-end">X</header>
+      <header className="text-end" style={{ cursor: "pointer" }} onClick={onClose}>
+        X
+      </header>
       <section className="container">
         <div className="">
           <img
             src={thumbnail?.large}
+            alt=''
             className="img-fluid img-thumbnail"
             style={{ width: "100%" }}
           />
@@ -20,7 +23,7 @@ export const BlogModal = ({ onClose, blog }) => {
         </figcaption>
         <p className="ms-2">{blog?.content}</p>
         <div className={styles["author-details"]}>
-          <img src={author?.avatar} alt="" className={styles["author-image"]} />
+          <img src={author?.avatar} alt="sdfs" className={styles["author-image"]} />
           <p>{author?.name} </p>
           <p>{author?.role} </p>
         </div>
