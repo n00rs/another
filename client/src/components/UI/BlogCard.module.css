@@ -1,12 +1,13 @@
 .blog-card {
     display: flex;
     flex-direction: column;
-    width: 400px;
+    width: 500px;
     max-width: 100%;
     background-color: #fff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     overflow: hidden;
+    cursor: pointer;
 }
 
 .blog-card img {
