@@ -13,17 +13,15 @@ connect();
 app.use("/api/contact", require("./routes/contactMongo"));
 
 if (process.env.NODE_ENV === "Production") {
-  
   // app.use(express.static("client/build"));
   // app.use(express.static(path.resolve(__dirname, "client", "build")));
   // app.get("*", (req, res) => {
   //   res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
   // });
-  app.use('*',(req,res)=>{
-    app.use(express.static(path.resolve(__dirname,'client','build')))
-    res.sendFile(path.resolve(__dirname,'client','build','index.html'))
-})
-
+  app.use("*", (req, res) => {
+    app.use(express.static(path.resolve(__dirname, "client", "build")));
+    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  });
 }
 app.use((err, req, res, next) => {
   console.log(err);
@@ -31,4 +29,4 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({ message: err.message });
 });
 
-app.listen(PORT, () => console.log(`server running at PORT :${PORT}`));
+app.listen(PORT ? PORT : 5000, () => console.log(`server running at PORT :${PORT}`));
