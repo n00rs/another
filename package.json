@@ -2,7 +2,7 @@
   "name": "bitroot",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "start": "node server/server.js",
     "server": "nodemon server/server.js",

@@ -18,15 +18,17 @@ if (process.env.NODE_ENV === "production") {
   // app.get("*", (req, res) => {
   //   res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
   // });
-  app.use(express.static(path.join(__dirname, "../client/build")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/build/index.html"));
-  });
 }
+
+app.use(express.static(path.join(__dirname, "../client/build")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build/index.html"));
+});
+
 app.use((err, req, res, next) => {
   console.log(err);
   const statusCode = err.statusCode ? err.statusCode : 500;
   res.status(statusCode).json({ message: err.message });
 });
 
-app.listen(PORT , () => console.log(`server running at PORT :${PORT}`));
+app.listen(PORT, () => console.log(`server running at PORT :${PORT}`));
