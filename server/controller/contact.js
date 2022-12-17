@@ -1,4 +1,5 @@
 const { ObjectID } = require("bson");
+const { Db } = require("mongodb");
 const { awsUpload } = require("../config/aws");
 const { db } = require("../config/mongodb");
 
@@ -24,7 +25,7 @@ class ContactController {
       if (!validate) throw { statuCode: 403, message: "please provide required details" };
 
       const contact = {
-        phone: [parseInt(req.body.phone)],
+        phone: [req.body.phone],
         address: {
           street: req.body?.street,
           city: req.body?.city,
@@ -62,12 +63,25 @@ class ContactController {
     try {
       // console.log(req.body);
       const pageNo = req.query.pageNo || 1;
-      const pageSize = req.query.pageSize || 1;
+      const pageSize = req.query.pageSize || 10;
       const search = req.query.search || "";
+      console.log(search);
+      let matchQuery = { $match: {} };
+      if (search)
+        matchQuery = {
+          $match: {
+            $or: [
+              { first_name: { $regex: search } },
+              { last_name: { $regex: search } },
+              { phone: { $regex: search } },
+            ],
+          },
+        };
 
       const [contacts] = await db
         .collection("contacts")
         .aggregate([
+          matchQuery,
           {
             $facet: {
               metadata: [
@@ -108,11 +122,32 @@ class ContactController {
   };
 
   //METHOD PUT
-  //ROUTE /api/contact
+  //ROUTE /api/contact/:contactId
 
   static updateContact = async (req, res, next) => {
     try {
       console.log(req.body);
+      const { first_name, last_name, street, city, zipcode, phone } = req.body;
+      const { contactId } = req.params;
+      //checking whether new number nalready exist in data base
+      if (phone) {
+        const checkNumExists = await db.collection("contacts").find({ phone: phone }).toArray();
+        if (checkNumExists.length) throw { statuCode: 400, message: "phone number already exists" };
+      }
+      const updateData = await db.collection("contacts").updateOne(
+        { _id: ObjectID(contactId) },
+        {
+          $set: {
+            first_name,
+            last_name,
+            "address.street": street,
+            "address.city": city,
+            "address.zipcode": parseInt(zipcode),
+          },
+          $push: { phone: { $each: [phone], $slice: -5 } },
+        }
+      );
+      console.log(updateData);
       res.status(201).json(req.body);
     } catch (err) {
       next(err);

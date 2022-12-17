@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+// import { useRef } from "react";
 import { deleteHandler, updateHandler } from "../../utils/api";
 import { ContactCard } from "../UI/ContactCard";
+import { Search } from "../UI/Search";
 // import FormInput from "../UI/FormInput";
 // import { Modal } from "../UI/Modal";
 import { EditContact } from "./EditContact";
@@ -10,10 +12,12 @@ export const ViewContacts = () => {
   const [contacts, setContacts] = useState([]);
   const [showEdit, setShowEdit] = useState(false);
   const [updateContact, setUpdateContact] = useState();
+  const [searchInp, setSearchInp] = useState("");
+  const searchVal = (e) => setSearchInp(e.target.value);
 
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     try {
-      const res = await fetch("/api/contact");
+      const res = await fetch(`/api/contact?search=${searchInp}`);
       const data = await res.json();
       if (!res.ok) throw data;
       console.log(data);
@@ -21,11 +25,11 @@ export const ViewContacts = () => {
     } catch (err) {
       console.error(err.message);
     }
-  };
+  }, [searchInp]);
 
   useEffect(() => {
     fetchContacts();
-  }, []);
+  }, [fetchContacts]);
 
   const deleteContact = async (id) => {
     // console.log(id);
@@ -43,6 +47,7 @@ export const ViewContacts = () => {
   };
   // console.log(showEdit);
   const hideModal = () => setShowEdit(false);
+
   const submitHandler = async (id, data) => {
     console.log(data);
     try {
@@ -52,12 +57,16 @@ export const ViewContacts = () => {
       console.error(err.message);
     }
   };
+  const searchHandler = () => {
+    console.log(searchInp);
+  };
   return (
     <>
       {showEdit && (
         <EditContact onClose={hideModal} data={updateContact} submitHandler={submitHandler} />
       )}
       <div className="container mt-5">
+        <Search onChange={searchVal} search={searchHandler} />
         <table className="table table-borderless table-responsive card-1 p-4 ">
           <thead>
             <tr className="border-bottom">
