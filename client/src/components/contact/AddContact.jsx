@@ -37,8 +37,10 @@ export const AddContact = () => {
       console.log(formData.get("first_name"));
       const data = await submitContact(formData);
       console.log(data);
-      if (data.success) alert("contact added");
-      setFormInput(initialState);
+      if (data.success) {
+        alert("contact added");
+        setFormInput(initialState);
+      }
     } catch (err) {
       console.error(err.message);
     }
@@ -55,6 +57,7 @@ export const AddContact = () => {
               placeholder="FIRST NAME"
               label="FIRST NAME"
               onChange={getInputVal}
+              defaultValue={initialState.first_name}
             />
             <FormInput
               type="text"
@@ -62,6 +65,7 @@ export const AddContact = () => {
               placeholder="LAST NAME"
               label="LAST NAME"
               onChange={getInputVal}
+              defaultValue={initialState.last_name}
             />
           </div>
           <div className="row g-2">
@@ -87,6 +91,7 @@ export const AddContact = () => {
               placeholder="STREET"
               label="STREET"
               onChange={getInputVal}
+              defaultValue={initialState.street}
             />
             <FormInput
               type="text"
@@ -94,6 +99,7 @@ export const AddContact = () => {
               placeholder="CITY"
               label="CITY"
               onChange={getInputVal}
+              defaultValue={initialState.city}
             />
           </div>
           <div className="row g-2">
@@ -103,6 +109,7 @@ export const AddContact = () => {
               placeholder="ZIPCODE"
               label="ZIPCODE"
               onChange={getInputVal}
+              defaultValue={initialState.zipcode}
             />
             <FormInput type="file" name="image" placeholder="IMAGE" onChange={getFile} />
           </div>

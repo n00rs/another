@@ -62,7 +62,7 @@ class ContactController {
   static fetchContacts = async (req, res, next) => {
     try {
       // console.log(req.body);
-      const pageNo = req.query.pageNo || 1;
+      const pageNo = req.query.page || 1;
       const pageSize = req.query.pageSize || 10;
       const search = req.query.search || "";
       console.log(search);

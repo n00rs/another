@@ -13,19 +13,23 @@ export const ViewContacts = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [updateContact, setUpdateContact] = useState();
   const [searchInp, setSearchInp] = useState("");
+  const [pageNo, setPageNo] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
   const searchVal = (e) => setSearchInp(e.target.value);
 
   const fetchContacts = useCallback(async () => {
     try {
-      const res = await fetch(`/api/contact?search=${searchInp}`);
+      const res = await fetch(`/api/contact?search=${searchInp}&page=${pageNo}`); //can add pageSize also
       const data = await res.json();
       if (!res.ok) throw data;
       console.log(data);
-      setContacts(data.data);
+      setContacts(data?.data);
+      setTotalPages(data?.metadata[0]?.totalPages);
     } catch (err) {
       console.error(err.message);
     }
-  }, [searchInp]);
+  }, [searchInp, pageNo]);
 
   useEffect(() => {
     fetchContacts();
@@ -60,6 +64,11 @@ export const ViewContacts = () => {
   const searchHandler = () => {
     console.log(searchInp);
   };
+  const prev = () => setPageNo((prev) => Math.max(1, prev - 1));
+  const next = () => setPageNo((prev) => Math.min(totalPages, prev - 1));
+  const changePageNo = (pageNo) => setPageNo(pageNo);
+  const pages = new Array(totalPages).fill(null).map((_, i) => i);
+console.log(pages,pageNo,totalPages);
   return (
     <>
       {showEdit && (
@@ -108,6 +117,27 @@ export const ViewContacts = () => {
             })}
           </tbody>
         </table>
+        <nav className="float-end me-5">
+          <ul className="pagination">
+            <li className="page-item">
+              <button className="page-link" onClick={prev}>
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            {pages.map((_, i) => (
+              <li className="page-item" key={Math.random()}>
+                <button className="page-link" onClick={() => changePageNo(i + 1)}>
+                  {i + 1}
+                </button>
+              </li>
+            ))}
+            <li className="page-item">
+              <button className="page-link" onClick={next}>
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
       </div>
     </>
   );
