@@ -1,6 +1,9 @@
 const db = require("../config/postgres");
 
 class ContactSQL {
+  //METHOD POST
+  //ROUTE /api/postgres
+
   static newContact = async (req, res, next) => {
     try {
       console.log(req.body);
@@ -48,11 +51,16 @@ class ContactSQL {
     }
   };
 
+  //METHOD GET
+  //ROUTE /api/postgres?page=&pageSize=&search=
+
   static fetchContacts = async (req, res, next) => {
     try {
       const page = req.query.page || 1;
       const pageSize = req.query.pageSize || 10;
       const search = req.query.search;
+
+      //TODO GET THE totalCount
 
       let query = `
       SELECT u.*,a.*,p.* FROM users AS u
@@ -73,10 +81,29 @@ class ContactSQL {
       }
 
       const { rows } = await db.query(query, arr);
-      
+
       if (rows.length < 1) throw { statusCode: 404, message: "no data available for this query" };
 
       res.status(200).json(rows);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  //METHOD DELETE
+  //ROUTE /api/postgres/:
+
+  static deleteContact = async (req, res, next) => {
+    try {
+      // console.log(req.params);
+      const { userId } = req.params;
+      if (!userId) throw { statusCode: 422, message: "please provide valide details" };
+
+      const query = `DELETE FROM users WHERE id=${userId}`;
+      const { rowCount } = await db.query(query);
+      if (rowCount !== 1) throw { statusCode: 400, message: "couldnt update th database" };
+
+      res.status(200).json({ success: true, message: "user removed successfully" });
     } catch (err) {
       next(err);
     }
@@ -96,7 +123,7 @@ async function createTables() {
   await db.query(userTableQuery);
   const addressTableQuery = `CREATE TABLE IF NOT EXISTS address(
         id serial PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         street VARCHAR(200) NOT NULL,
         city VARCHAR(200) NOT NULL,
         zip_code INTEGER NOT NULL
@@ -104,7 +131,7 @@ async function createTables() {
   await db.query(addressTableQuery);
   const phoneTableQuery = `CREATE TABLE IF NOT EXISTS phone_number(
     id serial PRIMARY KEY ,
-    user_id INTEGER REFERENCES users(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     phone_number VARCHAR(20) UNIQUE NOT NULL
   )`;
   await db.query(phoneTableQuery);
