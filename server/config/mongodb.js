@@ -3,7 +3,6 @@ const { MongoClient } = require("mongodb");
 const { MONGO_URL } = process.env;
 console.log(MONGO_URL);
 const client = new MongoClient(MONGO_URL);
-// const client = new MongoClient('mongodb+srv://noor:wsA0wMq1qWCf0SMr@cluster0.mg0z8hv.mongodb.net/?retryWrites=true&w=majority')
 const dbName = "bitroot";
 
 const connect = async () => {

@@ -19,17 +19,17 @@ class ContactSQL {
       const {
         rows: [{ id }],
       } = await db.query(insertUserQuery);
-
+      console.log(id);
       if (!id) throw { statusCode: 400, message: "oops something wrong in inserting " };
 
       //inserting data to addressTable
 
       const insertAddressQuery = `
       INSERT INTO address (user_id, street, city, zip_code) 
-      VALUES('${id}','${street}','${city}','${zipcode}')`;
-
+      VALUES(${id},'${street}','${city}',${zipcode})`;
+      console.log(insertAddressQuery);
       const { rowCount } = await db.query(insertAddressQuery);
-
+      console.log(rowCount);
       if (rowCount !== 1) throw { statusCode: 400, message: "oops something wrong in inserting " };
 
       const insertPhoneQuery = `
@@ -53,7 +53,16 @@ class ContactSQL {
       const page = req.query.page || 1;
       const pageSize = req.query.pageSize || 10;
       const search = req.query.search;
-      res.status(200).json()
+
+      const query = `SELECT u.*,a.*,p.* FROM users AS u
+       JOIN address AS a ON  u.id =  a.user_id
+       JOIN phone_number AS p ON u.id = p.user_id
+       LIMIT ${pageSize} OFFSET ${(page-1) * pageSize}
+       `;
+
+      const { rows } = await db.query(query);
+
+      res.status(200).json(rows);
     } catch (err) {
       next(err);
     }
