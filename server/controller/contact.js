@@ -1,5 +1,5 @@
 const { ObjectID } = require("bson");
-const { Db } = require("mongodb");
+
 const { awsUpload } = require("../config/aws");
 const { db } = require("../config/mongodb");
 

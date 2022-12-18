@@ -91,7 +91,7 @@ class ContactSQL {
   };
 
   //METHOD DELETE
-  //ROUTE /api/postgres/:
+  //ROUTE /api/postgres/:userId
 
   static deleteContact = async (req, res, next) => {
     try {
@@ -105,6 +105,75 @@ class ContactSQL {
 
       res.status(200).json({ success: true, message: "user removed successfully" });
     } catch (err) {
+      next(err);
+    }
+  };
+  //METHOD DELETE
+  //ROUTE /api/postgres/:userId
+
+  static updateContact = async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      if (!userId) throw { statusCode: 422, message: "please provide valide details" };
+
+      console.log(req.body);
+      const { first_name, last_name, street, city, zipcode, phone } = req.body;
+
+      await db.query("BEGIN");
+      // const updateQuery = `UPDATE users u
+      // SET first_name =  COALESCE(NULLIF($1, ''), first_name),
+      //  last_name =      COALESCE(NULLIF($2, ''), last_name)
+      // FROM address a
+      // WHERE u.id = a.user_id AND u.id = $3;
+
+      // UPDATE address a
+      // SET city = COALESCE(NULLIF($4,'') city),
+      //     street = COALESCE(NULLIF($5,'') street),
+      //     zip_code = COALESCE(NULLIF($6,'') zip_code)
+
+      // FROM users u
+      // WHERE u.id = a.user_id AND u.id = $3;`;
+
+      const updateOne = await db.query(
+        ` UPDATE users u
+      SET first_name = COALESCE(NULLIF($1, ''), first_name),
+          last_name = COALESCE(NULLIF($2, ''), last_name)
+      FROM address a
+      WHERE u.id = a.user_id AND u.id = $3
+    `,
+        [first_name, last_name, userId]
+      );
+
+      const updatetwo = await db.query(
+        `UPDATE address a
+      SET city = COALESCE(NULLIF($1, ''), city),
+          street = COALESCE(NULLIF($2, ''), street),
+          zip_code = COALESCE(NULLIF($4,''), zip_code)
+      FROM users u
+      WHERE u.id = a.user_id AND u.id = $3
+    `,
+        [city, street, userId, zipcode]
+      );
+      if (phone)
+        await db.query(`INSERT INTO phone_number(user_id,phone_number) VALUES ($1,$2)`, [
+          userId,
+          phone,
+        ]);
+      // const update = await db.query(updateQuery, [
+      //   first_name,
+      //   last_name,
+      //   userId,
+      //   city,
+      //   street,
+      //   zipcode,
+      // ]);
+
+      console.log(updateOne, updatetwo);
+
+      await db.query("COMMIT");
+      res.status(200).json({ success: true });
+    } catch (err) {
+      await db.query("ROLLBACK");
       next(err);
     }
   };
@@ -136,3 +205,17 @@ async function createTables() {
   )`;
   await db.query(phoneTableQuery);
 }
+
+// `UPDATE users u
+// SET first_name =  COALESCE(NULLIF($1, ''), first_name),
+//  last_name =      COALESCE(NULLIF($2, ''), last_name)
+// FROM address a
+// WHERE u.id = a.user_id AND u.id = $3;
+
+// UPDATE address a
+// SET city = COALESCE(NULLIF($4,'') city),
+//    street = COALESCE(NULLIF($5,'') street),
+//    zip_code = COALESCE(NULLIF($6,'') zip_code)
+
+// FROM users u
+// WHERE u.id = a.user_id AND u.id = $3;`;
