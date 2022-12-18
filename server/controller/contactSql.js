@@ -54,13 +54,27 @@ class ContactSQL {
       const pageSize = req.query.pageSize || 10;
       const search = req.query.search;
 
-      const query = `SELECT u.*,a.*,p.* FROM users AS u
+      let query = `
+      SELECT u.*,a.*,p.* FROM users AS u
        JOIN address AS a ON  u.id =  a.user_id
        JOIN phone_number AS p ON u.id = p.user_id
-       LIMIT ${pageSize} OFFSET ${(page-1) * pageSize}
+       LIMIT $1 OFFSET $2  
        `;
+      let arr = [pageSize, (page - 1) * pageSize];
+      if (search) {
+        query = `
+        SELECT u.*,a.*,p.* FROM users AS u
+        JOIN address AS a ON  u.id =  a.user_id
+        JOIN phone_number AS p ON u.id = p.user_id
+        WHERE u.first_name ILIKE $1 OR u.last_name ILIKE $1 OR p.phone_number ILIKE $1
+        LIMIT $2 OFFSET $3 
+        `;
+        arr = [`%${search}%`, pageSize, (page - 1) * pageSize];
+      }
 
-      const { rows } = await db.query(query);
+      const { rows } = await db.query(query, arr);
+      
+      if (rows.length < 1) throw { statusCode: 404, message: "no data available for this query" };
 
       res.status(200).json(rows);
     } catch (err) {
